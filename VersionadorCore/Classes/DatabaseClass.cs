@@ -1,6 +1,6 @@
 ﻿namespace VersionadorCore.Classes
 {
-    class DatabaseClass
+    public class DatabaseClass
     {
         public string Servidor { get; set; }
         public string Database { get; set; }
