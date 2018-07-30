@@ -11,44 +11,27 @@ namespace VersionadorCore
     {
         public delegate void EventoExecucaoDelegate(object sender, ExecucaoEventArgs e);
 
-        /// <summary>
-        /// Exemplo de chamada.
-        /// </summary>
-        /// <param name="args"></param>
-        //public static void Main(string[] args)
-        //{
-        //    VersionadorCore versionador = new VersionadorCore()
-        //    {
-        //        Diretorio = @"C:\Teste",
-        //        NomeProcedure = @"PRC_TESTE"
-        //    };
-        //    versionador.AposExecucaoEvent += (sender, e) =>
-        //    {
-        //        if (e.HouveErro)
-        //        {
-        //            Console.WriteLine("Erro ao executar: " + e.Erro.Message);
-        //        }
-        //        else
-        //        {
-        //            Console.WriteLine("Executado com sucesso!");
-        //        }
-        //        Console.ReadKey();
-        //    };
-        //    versionador.Executar();
-        //}
-
         #region Propriedades
         public string Diretorio { get; set; }
         public string NomeProcedure { get; set; }
         public event EventoExecucaoDelegate AntesExecucaoEvent;
         public event EventoExecucaoDelegate AposExecucaoEvent;
+        public List<DatabaseClass> Databases { get; }
 
         private bool houveErro = false;
-        private Exception erro = null;
+        private VersionadorException erro = null;
         private Thread thread = null;
         #endregion
 
         #region Métodos
+        /// <summary>
+        /// Método construtor. Retorna uma nova instância de VersionadorCore.
+        /// </summary>
+        public VersionadorCore()
+        {
+            Databases = new List<DatabaseClass>();
+        }
+
         /// <summary>
         /// Método para iniciar a execução do versionamento.
         /// </summary>
@@ -82,12 +65,10 @@ namespace VersionadorCore
             try
             {
                 LimparVariaveis();
-                List<DatabaseClass> databases = RetornarDatabases();
-
                 OnAntesExecucaoEvento();
                 if (string.IsNullOrEmpty(erroValidacao))
                 {
-                    foreach (DatabaseClass database in databases)
+                    foreach (DatabaseClass database in Databases)
                     {
                         string query = "SELECT C.TEXT " +
                                      "FROM SYS.SYSOBJECTS O WITH(NOLOCK) " +
@@ -102,7 +83,7 @@ namespace VersionadorCore
                         }
                         else
                         {
-                            throw new Exception("Não há procedure de nome " + NomeProcedure + "!!!");
+                            TratarErro(new Exception("Não há procedure de nome " + NomeProcedure + " na database " + database.Database.ToUpper() + "!!!"));
                         }
                     }
                     OnAposExecucaoEvento();
@@ -179,8 +160,12 @@ namespace VersionadorCore
         /// <param name="erro">Exception com as informações do erro.</param>
         private void TratarErro(Exception erro)
         {
-            houveErro = true;
-            this.erro = erro;
+            if (!houveErro)
+            {
+                this.erro = new VersionadorException("Erro ao realizar a operação! Veja InnerExceptions para mais detalhes.");
+                houveErro = true;
+            }
+            this.erro.InnerExceptions.Add(erro);
         }
 
         /// <summary>
@@ -190,18 +175,6 @@ namespace VersionadorCore
         {
             houveErro = false;
             erro = null;
-        }
-
-        /// <summary>
-        /// Retorna a lista de Databases para consulta.
-        /// </summary>
-        /// <returns>Retorna a lista de Databases para consulta.</returns>
-        private List<DatabaseClass> RetornarDatabases()
-        {
-            return new List<DatabaseClass>()
-            {
-                new DatabaseClass() { Servidor = "", Database = "", NomePasta = "", Usuario = "", Senha = "" }
-            };
         }
         #endregion
 
