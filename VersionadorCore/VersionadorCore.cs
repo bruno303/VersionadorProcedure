@@ -60,7 +60,8 @@ namespace VersionadorCore
         private void ExecutarVersionamento()
         {
             string erroValidacao = Validar();
-            string textoCompleto = string.Empty;
+            string textoCompleto;
+            var arquivo = new ArquivoClass();
 
             try
             {
@@ -78,8 +79,8 @@ namespace VersionadorCore
                         if (!string.IsNullOrEmpty(textoProcedure))
                         {
                             textoCompleto = MontarCabecalhoProcedure(database, query) + textoProcedure;
-                            new ArquivoClass().Salvar(textoCompleto, Diretorio, database.NomePasta, NomeProcedure + "_BKP.sql");
-                            new ArquivoClass().Salvar(textoCompleto, Diretorio, database.NomePasta, NomeProcedure + "_ALT.sql");
+                            arquivo.Salvar(textoCompleto, Diretorio, database.NomePasta, NomeProcedure + "_BKP.sql");
+                            arquivo.Salvar(textoCompleto, Diretorio, database.NomePasta, NomeProcedure + "_ALT.sql");
                         }
                         else
                         {
@@ -128,12 +129,12 @@ namespace VersionadorCore
         private string MontarCabecalhoProcedure(DatabaseClass database, string query)
         {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine("USE[" + database.Database + "]");
+            builder.AppendLine("USE [" + database.Database + "]");
             builder.AppendLine("GO");
             builder.AppendLine("SET ANSI_NULLS ON");
             builder.AppendLine("GO");
             builder.AppendLine("SET QUOTED_IDENTIFIER ON");
-            builder.AppendLine("GO");
+            builder.AppendLine("GO\n");
             return builder.ToString();
         }
 

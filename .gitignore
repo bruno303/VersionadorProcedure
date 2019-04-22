@@ -328,3 +328,5 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 /ConsultaSql/Classes/bd.json
+
+database.db
